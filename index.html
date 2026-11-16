@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BALLOON POP – PECAHKAN BALON PINTAR</title>
+<style>
+:root{--ink:#20345d;--blue:#55c7f2;--pink:#ff6fae;--yellow:#ffd65a;--green:#63d6a2;--purple:#9b83f6}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:"Arial Nova",Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#7bd8ff 0%,#c8f2ff 62%,#effcff 100%);overflow-x:hidden}
+body:before,body:after{content:"";position:fixed;z-index:-1;background:#fff;border-radius:100px;filter:blur(1px);opacity:.8;width:180px;height:48px;top:14%;left:5%;box-shadow:45px -20px 0 8px #fff,90px 2px 0 -2px #fff}
+body:after{top:31%;left:auto;right:7%;transform:scale(.7)}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px clamp(14px,4vw,40px);background:#ffffffd9;box-shadow:0 5px 20px #3675a522;position:sticky;top:0;z-index:5;backdrop-filter:blur(10px)}
+.brand{font-weight:1000;font-size:clamp(15px,2.2vw,22px);color:#34558c}.brand span{color:#f05b9c}
+.stats{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.pill{background:#edf8ff;border:2px solid #d4efff;border-radius:30px;padding:8px 13px;font-weight:800;font-size:13px}
+main{width:min(1100px,94vw);margin:22px auto 40px}
+.panel{background:#ffffffdf;border:3px solid #fff;border-radius:26px;padding:clamp(16px,3vw,28px);box-shadow:0 12px 35px #3576a522}
+.hero{text-align:center;margin-bottom:18px}.hero h1{font-size:clamp(25px,5vw,43px);margin:4px 0;color:#365b9b;text-shadow:2px 3px 0 #fff}.hero p{margin:5px;color:#52729b;font-weight:700}
+.setup{max-width:580px;margin:20px auto;text-align:center}.setup input{width:min(100%,360px);padding:14px 17px;border:2px solid #b9e5fb;border-radius:16px;font-size:17px;outline:none}
+button{border:0;border-radius:16px;padding:12px 18px;font-weight:900;font-size:15px;cursor:pointer;transition:.18s transform,.18s filter;box-shadow:0 5px 0 #00000015}
+button:hover{transform:translateY(-2px);filter:brightness(1.03)}button:active{transform:translateY(2px);box-shadow:none}
+.primary{background:linear-gradient(135deg,#ff78b5,#ff9a8b);color:white;margin-top:12px}.secondary{background:#e6f5ff;color:#315b8e}.warning{background:#fff0bd;color:#7d5b0c}
+.hidden{display:none!important}
+.game-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.level{font-weight:1000;color:#4565a0}.progress{height:13px;background:#e4f2ff;border-radius:20px;overflow:hidden;margin:8px 0 17px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#5bd6a5,#4cbdf2,#a58af8);transition:width .35s}
+.question-card{text-align:center;padding:17px 12px 10px}.tag{display:inline-block;border-radius:20px;padding:6px 13px;background:#fff0bd;color:#8b6500;font-size:12px;font-weight:1000;letter-spacing:.7px}.question{font-size:clamp(23px,4vw,35px);font-weight:1000;margin:12px 0 5px;color:#294b84}.hint{color:#6b83a5;font-size:14px;font-weight:700}
+.playfield{position:relative;height:390px;overflow:hidden;border-radius:24px;border:3px solid #fff;background:linear-gradient(180deg,#a8e8ff99,#effdffcc);margin-top:10px;isolation:isolate}
+.playfield:before,.playfield:after{content:"";position:absolute;bottom:-40px;width:240px;height:100px;border-radius:50%;background:#8ee4b2;z-index:-1;opacity:.7}.playfield:before{left:-40px}.playfield:after{right:-30px;background:#b5e9a2}
+.balloon{position:absolute;width:clamp(82px,12vw,112px);height:clamp(105px,15vw,137px);border-radius:52% 52% 48% 48%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:clamp(22px,3vw,30px);font-weight:1000;text-shadow:0 2px 3px #0004;cursor:pointer;user-select:none;touch-action:manipulation;box-shadow:inset -10px -12px 18px #0002,inset 9px 8px 15px #ffffff80,0 9px 14px #346b8b30;animation:float 3.2s ease-in-out infinite;transform-origin:center}
+.balloon:before{content:"";position:absolute;top:12%;left:20%;width:17%;height:34%;border-radius:50%;background:#ffffff85;transform:rotate(25deg)}
+.balloon:after{content:"";position:absolute;bottom:-9px;left:calc(50% - 7px);border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid var(--balloon-color)}
+.balloon .string{position:absolute;top:100%;height:43px;width:1px;background:#6685a3a8}
+.balloon.selected{outline:5px solid #fff;outline-offset:3px;filter:brightness(1.12);z-index:3}
+.balloon.pop{animation:pop .32s ease-out forwards;pointer-events:none}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -17px}}
+@keyframes pop{to{transform:scale(1.65);opacity:0;filter:blur(5px)}}
+.feedback{min-height:30px;text-align:center;font-size:17px;font-weight:1000;padding:8px;color:#3c689b}
+.controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:9px}
+.camera-area{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:#617b9c}
+#video{width:150px;height:112px;object-fit:cover;border-radius:14px;transform:scaleX(-1);background:#d9f3ff;border:3px solid white}
+#handStatus{font-weight:800}
+#handCursor{position:fixed;left:50%;top:50%;width:23px;height:23px;border:4px solid #fff;border-radius:50%;background:#ff5c9b;box-shadow:0 0 0 4px #ff5c9b55;z-index:20;pointer-events:none;display:none;transform:translate(-50%,-50%)}
+#handCursor.pinching{background:#62d69f;box-shadow:0 0 0 7px #62d69f55}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
+.result{text-align:center}.result h2{font-size:clamp(27px,5vw,42px);color:#3c62a1}.big-score{font-size:48px;font-weight:1000;color:#f05b9c}
+footer{text-align:center;color:#6684a8;font-size:12px;padding:0 10px 20px}
+@media(max-width:600px){header{align-items:flex-start;flex-direction:column}.stats{justify-content:flex-start}.playfield{height:360px}.camera-area{flex-direction:column}#video{width:128px;height:96px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand">🎈 BALLOON <span>POP!</span></div>
+ <div class="stats">
+  <div class="pill">👤 <span id="navName">Pemain</span></div>
+  <div class="pill">⭐ Skor: <span id="navScore">0</span></div>
+  <div class="pill">⏱️ <span id="timer">00:00</span></div>
+ </div>
+</header>
+<main>
+ <section class="hero">
+  <h1>BALLOON POP</h1>
+  <p>PECAHKAN BALON PINTAR • MATEMATIKA KELAS 2</p>
+ </section>
+ <section id="startPanel" class="panel setup">
+  <div style="font-size:62px">🎈☁️🎈</div>
+  <h2>Siap bermain dan belajar?</h2>
+  <p>Jawab 15 soal penjumlahan dengan memecahkan balon yang tepat!</p>
+  <input id="studentName" maxlength="24" placeholder="Masukkan nama siswa" autocomplete="name">
+  <br><button class="primary" id="startBtn">MULAI PETUALANGAN 🚀</button>
+  <p class="hint">Kamera bersifat pilihan. Kamu juga bisa memakai mouse atau layar sentuh.</p>
+ </section>
+ <section id="gamePanel" class="panel hidden">
+  <div class="game-top">
+   <div class="level" id="levelLabel">LEVEL 1 / 5</div>
+   <div class="pill">Soal <span id="questionNo">1</span> / 15</div>
+   <div class="pill">⏳ Waktu berjalan</div>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+  <div class="question-card">
+   <span class="tag" id="category">LOTS</span>
+   <div class="question" id="questionText">12 + 5 = ...?</div>
+   <div class="hint">Arahkan penunjuk ke balon jawaban, lalu klik / sentuh / lakukan pinch.</div>
+  </div>
+  <div id="playfield" class="playfield" aria-label="Area balon jawaban"></div>
+  <div id="feedback" class="feedback" aria-live="polite">Pilih balon dengan jawaban yang benar!</div>
+  <div class="controls">
+   <button class="secondary" id="cameraBtn">📷 Aktifkan kamera</button>
+   <button class="secondary" id="soundBtn">🔊 Suara: ON</button>
+   <button class="warning" id="stopCameraBtn">Matikan kamera</button>
+  </div>
+  <div class="camera-area">
+   <video id="video" playsinline muted></video>
+   <div><div id="handStatus">Kamera belum diaktifkan.</div><small>Pinch: dekatkan ibu jari dan telunjuk di atas balon.</small></div>
+  </div>
+ </section>
+ <section id="resultPanel" class="panel result hidden">
+  <div style="font-size:70px">🏆🎉🎈</div>
+  <h2>Hebat Sekali, <span id="resultName"></span>!</h2>
+  <p>Kamu telah menyelesaikan semua level BALLOON POP.</p>
+  <div class="big-score"><span id="finalScore">0</span> poin</div>
+  <p id="appreciation"></p>
+  <p>Waktu bermain: <b id="finalTime">00:00</b></p>
+  <button class="primary" id="againBtn">MAIN LAGI 🔄</button>
+ </section>
+</main>
+<canvas id="confetti"></canvas>
+<div id="handCursor"></div>
+<footer>Belajar penjumlahan jadi lebih seru! 🌈</footer>
+
+<!-- MediaPipe Hands dimuat dari CDN saat fitur kamera dipakai. Game tetap berjalan tanpa kamera. -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script>
+(() => {
+"use strict";
+const questions = [
+ {q:"12 + 5 = ...?",a:17,o:[15,16,17,18],c:"LOTS"},
+ {q:"Rani punya 8 apel. Ibu memberi 6 apel lagi. Berapa apel Rani sekarang?",a:14,o:[12,13,14,15],c:"MOTS"},
+ {q:"Beni memiliki 9 kelereng. Ia mendapat 7 lagi, lalu menemukan 3 di tas. Berapa jumlah semuanya?",a:19,o:[18,19,20,21],c:"HOTS"},
+ {q:"23 + 4 = ...?",a:27,o:[26,27,28,29],c:"LOTS"},
+ {q:"Di rak ada 15 buku cerita dan 12 buku gambar. Berapa jumlah buku di rak?",a:27,o:[25,26,27,28],c:"MOTS"},
+ {q:"Dina mengumpulkan 14 stiker. Siti punya 8 stiker lebih banyak dari Dina. Berapa stiker mereka jika digabung?",a:36,o:[34,35,36,37],c:"HOTS"},
+ {q:"30 + 20 = ...?",a:50,o:[40,45,50,60],c:"LOTS"},
+ {q:"Pak Guru membawa 26 pensil merah dan 13 pensil biru. Berapa pensil semuanya?",a:39,o:[37,38,39,40],c:"MOTS"},
+ {q:"Ada 18 burung di pohon. Datang 9 burung lagi. Lalu 5 burung hinggap. Berapa burung sekarang?",a:32,o:[30,31,32,33],c:"HOTS"},
+ {q:"45 + 3 = ...?",a:48,o:[47,48,49,50],c:"LOTS"},
+ {q:"Di kebun tumbuh 24 bunga mawar dan 18 bunga melati. Berapa jumlah bunga?",a:42,o:[40,41,42,43],c:"MOTS"},
+ {q:"Toko memiliki 27 balon merah dan 16 balon kuning. Pemilik membeli 7 balon lagi. Berapa jumlah balon sekarang?",a:50,o:[48,49,50,51],c:"HOTS"},
+ {q:"60 + 15 = ...?",a:75,o:[70,74,75,76],c:"LOTS"},
+ {q:"Perpustakaan memiliki 35 buku baru. Datang kiriman 28 buku lagi. Berapa buku baru semuanya?",a:63,o:[61,62,63,64],c:"MOTS"},
+ {q:"Mila membaca 18 halaman pada pagi hari dan 17 halaman sore hari. Besok ia membaca 15 halaman lagi. Berapa halaman yang sudah dibaca?",a:50,o:[48,49,50,51],c:"HOTS"}
+];
+const $ = id => document.getElementById(id);
+let name="Pemain", score=0, index=0, startAt=0, timerId=null, soundOn=true, locked=false;
+let stream=null, hands=null, mpCamera=null, cameraOn=false, lastPinch=false, handLoopBusy=false;
+const colors=["#ff6b9f","#8d7cf6","#ffb83f","#39c8b5"];
+const startPanel=$("startPanel"), gamePanel=$("gamePanel"), resultPanel=$("resultPanel"), field=$("playfield");
+function fmt(sec){return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")}
+function sound(freq=550,duration=.12,type="sine"){
+ if(!soundOn)return;
+ try{const ctx=new (window.AudioContext||window.webkitAudioContext)(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=type;osc.frequency.value=freq;gain.gain.setValueAtTime(.12,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration);osc.onended=()=>ctx.close()}catch(e){}
+}
+function start(){
+ name=$("studentName").value.trim()||"Pemain";score=0;index=0;startAt=Date.now();
+ $("navName").textContent=name;$("navScore").textContent="0";
+ startPanel.classList.add("hidden");resultPanel.classList.add("hidden");gamePanel.classList.remove("hidden");
+ clearInterval(timerId);timerId=setInterval(()=>$("timer").textContent=fmt(Math.floor((Date.now()-startAt)/1000)),500);
+ renderQuestion();
+}
+function renderQuestion(){
+ locked=false;const item=questions[index];
+ $("levelLabel").textContent=`LEVEL ${Math.floor(index/3)+1} / 5`;
+ $("questionNo").textContent=index+1;$("category").textContent=item.c;
+ $("questionText").textContent=item.q;$("progressBar").style.width=(index/15*100)+"%";
+ $("feedback").textContent="Pilih balon dengan jawaban yang benar!";
+ field.innerHTML="";
+ const shuffled=[...item.o].sort(()=>Math.random()-.5);
+ const positions=[[8,18],[37,7],[66,19],[42,51]];
+ shuffled.forEach((answer,i)=>{
+  const b=document.createElement("div");b.className="balloon";b.textContent=answer;
+  b.style.left=positions[i][0]+"%";b.style.top=positions[i][1]+"%";
+  b.style.background=`radial-gradient(circle at 30% 25%,#ffffff99,${colors[i]} 45%,${colors[i]} 100%)`;
+  b.style.setProperty("--balloon-color",colors[i]);b.style.animationDelay=(i*.32)+"s";
+  b.dataset.answer=answer;b.setAttribute("role","button");b.setAttribute("aria-label","Jawaban "+answer);
+  const string=document.createElement("span");string.className="string";b.appendChild(string);
+  b.addEventListener("click",()=>choose(b));
+  b.addEventListener("pointerdown",e=>{if(e.pointerType==="touch"){e.preventDefault();choose(b)}});
+  field.appendChild(b);
+ });
+}
+function choose(balloon){
+ if(locked||!balloon||!balloon.isConnected)return;
+ const correct=Number(balloon.dataset.answer)===questions[index].a;
+ if(correct){
+  locked=true;score+=10;$("navScore").textContent=score;
+  $("feedback").textContent="🎉 BENAR! Hebat, balonmu meletus!";
+  balloon.classList.add("pop");sound(760,.18);setTimeout(()=>sound(980,.18),100);burst(balloon);
+  setTimeout(()=>{index++;if(index>=questions.length)finish();else renderQuestion()},950);
+ }else{
+  $("feedback").textContent="😊 Belum tepat. Coba pilih balon yang lain!";
+  balloon.animate([{transform:"translateX(0)"},{transform:"translateX(-9px)"},{transform:"translateX(9px)"},{transform:"translateX(0)"}],{duration:300});
+  balloon.style.filter="grayscale(.25)";sound(190,.2,"triangle");
+ }
+}
+function burst(el){
+ const r=el.getBoundingClientRect();
+ for(let i=0;i<15;i++){const p=document.createElement("i");p.style.cssText=`position:fixed;z-index:25;pointer-events:none;left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:8px;height:8px;border-radius:50%;background:${colors[i%4]};`;
+ document.body.appendChild(p);const a=Math.PI*2*i/15,d=45+Math.random()*65;p.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px) scale(.2)`,opacity:0}],{duration:550,easing:"ease-out"}).onfinish=()=>p.remove();}
+}
+function finish(){
+ clearInterval(timerId);stopCamera();
+ gamePanel.classList.add("hidden");resultPanel.classList.remove("hidden");
+ $("progressBar").style.width="100%";$("resultName").textContent=name;
+ $("finalScore").textContent=score;$("finalTime").textContent=fmt(Math.floor((Date.now()-startAt)/1000));
+ $("appreciation").textContent=score>=130?"Luar biasa! Kamu sangat teliti dan hebat berhitung! 🌟":score>=90?"Bagus sekali! Terus berlatih agar semakin pintar! 👏":"Terima kasih sudah berusaha! Coba lagi, kamu pasti semakin mahir! 💪";
+ confetti();
+}
+function confetti(){
+ const c=$("confetti"),ctx=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;
+ const bits=Array.from({length:120},()=>({x:Math.random()*c.width,y:-Math.random()*c.height,v:2+Math.random()*4,s:4+Math.random()*6,a:Math.random()*6}));
+ let frame=0;function draw(){ctx.clearRect(0,0,c.width,c.height);bits.forEach(p=>{p.y+=p.v;p.x+=Math.sin(p.y/25);ctx.fillStyle=colors[Math.floor(p.x+p.y)%4];ctx.fillRect(p.x,p.y,p.s,p.s)});if(++frame<180)requestAnimationFrame(draw);else ctx.clearRect(0,0,c.width,c.height)}draw();
+}
+$("startBtn").addEventListener("click",start);$("studentName").addEventListener("keydown",e=>{if(e.key==="Enter")start()});
+$("againBtn").addEventListener("click",()=>{stopCamera();$("timer").textContent="00:00";startPanel.classList.remove("hidden");resultPanel.classList.add("hidden");gamePanel.classList.add("hidden")});
+$("soundBtn").addEventListener("click",()=>{soundOn=!soundOn;$("soundBtn").textContent=soundOn?"🔊 Suara: ON":"🔇 Suara: OFF";if(soundOn)sound(600)});
+/* Kamera baru diminta setelah tombol ditekan oleh pengguna. */
+async function startCamera(){
+ if(cameraOn)return;
+ $("handStatus").textContent="Meminta izin kamera…";
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error("Kamera tidak didukung. Gunakan HTTPS atau localhost.");
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:640,height:480},audio:false});
+  $("video").srcObject=stream;await $("video").play();
+  if(!window.Hands)throw new Error("MediaPipe gagal dimuat. Periksa koneksi internet.");
+  hands=new Hands({locateFile:file=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+  hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:.65,minTrackingConfidence:.6});
+  hands.onResults(onHandResults);
+  mpCamera=new Camera($("video"),{onFrame:async()=>{if(hands&&!handLoopBusy){handLoopBusy=true;try{await hands.send({image:$("video")})}finally{handLoopBusy=false}}},width:640,height:480});
+  mpCamera.start();cameraOn=true;$("handStatus").textContent="Kamera aktif. Tunjuk balon dan lakukan pinch!";
+  $("handCursor").style.display="block";
+ }catch(err){$("handStatus").textContent="Tidak dapat mengaktifkan kamera: "+err.message;stopCamera();}
+}
+function onHandResults(results){
+ const cursor=$("handCursor");
+ if(!results.multiHandLandmarks||!results.multiHandLandmarks.length){cursor.style.display="none";lastPinch=false;return}
+ cursor.style.display="block";
+ const lm=results.multiHandLandmarks[0],tip=lm[8],thumb=lm[4];
+ const x=(1-tip.x)*innerWidth,y=tip.y*innerHeight;
+ cursor.style.left=x+"px";cursor.style.top=y+"px";
+ const dist=Math.hypot(tip.x-thumb.x,tip.y-thumb.y),pinch=dist<.055;
+ cursor.classList.toggle("pinching",pinch);
+ if(pinch&&!lastPinch){
+  const target=document.elementFromPoint(x,y)?.closest(".balloon");
+  if(target)choose(target);
+ }
+ lastPinch=pinch;
+}
+function stopCamera(){
+ if(mpCamera){try{mpCamera.stop()}catch(e){}mpCamera=null}
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+ if(hands){try{hands.close()}catch(e){}hands=null}
+ cameraOn=false;lastPinch=false;$("video").srcObject=null;$("handCursor").style.display="none";
+ $("handStatus").textContent="Kamera dimatikan.";
+}
+$("cameraBtn").addEventListener("click",startCamera);$("stopCameraBtn").addEventListener("click",stopCamera);
+window.addEventListener("resize",()=>{const c=$("confetti");c.width=innerWidth;c.height=innerHeight});
+})();
+</script>
+</body>
+</html>
